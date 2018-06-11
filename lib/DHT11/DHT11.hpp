@@ -1,0 +1,51 @@
+/*
+
+Copyright 2018 Bert Melis
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+
+#include <Arduino.h>
+#include <Ticker.h>
+#include <FunctionalInterrupt.h>
+
+class DHT11 {
+ public:
+  DHT11();
+  void setPin(uint8_t pin);
+  void read();
+  const int8_t ready() const;
+  float getTemp();
+  const char* getError();
+  void getMicros(uint32_t array[]) { memcpy(array, _micros, 40); }
+ private:
+  uint8_t _pin;
+  Ticker _timer;
+  int8_t _result;
+  static void ICACHE_RAM_ATTR _handleRead(DHT11* instance);
+  void ICACHE_RAM_ATTR _handleAck();
+  void ICACHE_RAM_ATTR _handleData();
+  static void ICACHE_RAM_ATTR _timeout(DHT11* instance);
+private:
+  char _errorStr[5];
+  uint32_t _micros[40];
+  uint8_t _currentMicros;
+};
