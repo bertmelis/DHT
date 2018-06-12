@@ -23,21 +23,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
+#include <functional>
+
 #include <Arduino.h>
 #include <Ticker.h>
 #include <FunctionalInterrupt.h>
+#include <Schedule.h>
+
+typedef std::function<void(int8_t)> Callback;
 
 class DHT11 {
  public:
   DHT11();
   void setPin(uint8_t pin);
+  void setCallback(Callback cb);
   void read();
   const int8_t ready() const;
-  float getTemp();
+  int8_t getTemp();
+  int8_t getHumid();
+  int8_t getChecksum();
   const char* getError();
-  void getMicros(uint32_t array[]) { memcpy(array, _micros, 40); }
+  // TODO(bertmelis) remove getMicros after debugging
+  void getMicros(uint32_t* array) { for (uint8_t i = 0; i < 41; ++i) array[i] = _micros[i]; }
  private:
   uint8_t _pin;
+  Callback _callback;
   Ticker _timer;
   int8_t _result;
   static void ICACHE_RAM_ATTR _handleRead(DHT11* instance);
@@ -46,6 +56,9 @@ class DHT11 {
   static void ICACHE_RAM_ATTR _timeout(DHT11* instance);
 private:
   char _errorStr[5];
-  uint32_t _micros[40];
-  uint8_t _currentMicros;
+  volatile int8_t _data[5];
+  volatile uint8_t _counter;
+  volatile uint32_t _previousMicros;
+  // TODO(bertmelis) remove _micros after debugging
+  uint32_t _micros[41];
 };

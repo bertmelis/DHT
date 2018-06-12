@@ -31,9 +31,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Ticker ticker;
 bool DHTFlag = false;
-
 DHT11 dht11;
-uint32_t array[2][40];
 
 void setDHTFlag() {
   DHTFlag = true;
@@ -42,26 +40,27 @@ void setDHTFlag() {
 void setup() {
   Serial.begin(74880);
   dht11.setPin(D4);
-  ticker.attach(20, setDHTFlag);
+  dht11.setCallback([](int8_t result) {
+    if (result > 0) {
+      uint32_t micros[41];
+      dht11.getMicros(micros);
+      Serial.print("Raw data:\n");
+      for (uint8_t i = 1; i < 41; ++i) {
+        Serial.println(micros[i]);
+      }
+      Serial.printf("Temp: %i°C\n", dht11.getTemp());
+      Serial.printf("Humid: %i%%\n", dht11.getHumid());
+    } else {
+      Serial.printf("Error: %s\n", dht11.getError());
+    }
+  });
+  ticker.attach(30, setDHTFlag);
 }
 
 void loop() {
   if (DHTFlag) {
     DHTFlag = false;
-    Serial.print("Start acquiring\n");
+    Serial.print("\nStart acquiring\n");
     dht11.read();
-  }
-  if (dht11.ready() > 0) {
-    dht11.getMicros(&array[0][0]);
-    array[1][0] = 0;
-    for (uint8_t i = 1; i < 40; ++i) {
-      array[1][i] = array[0][i] - array[0][i-1];
-    }
-    Serial.printf("current temp is %.1f\n", dht11.getTemp());
-    for (uint8_t i = 0; i < 40; ++i) {
-      Serial.printf("%u: %u - %u\n", i, array[0][i], array[1][i]);
-    }
-  } else if (dht11.ready() < 0) {
-    Serial.printf("Error: %s\n", dht11.getError());
   }
 }
