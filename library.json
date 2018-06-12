@@ -1,0 +1,22 @@
+{
+  "name": "DHT",
+  "version": "1.0.0",
+  "keywords": "DHT, interrupt, callback, Arduino, ESP8266",
+  "description": "Non blocking interrupt driven DHT library for ESP8266",
+  "homepage": "https://github.com/bertmelis/DHT",
+  "license": "MIT",
+  "authors": {
+    "name": "Bert Melis",
+    "url": "https://github.com/bertmelis",
+    "maintainer": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bertmelis/DHT.git",
+    "branch": "master"
+  },
+  "frameworks": "arduino",
+  "platforms": [
+    "espressif8266"
+  ]
+}
