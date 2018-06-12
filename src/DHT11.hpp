@@ -23,6 +23,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
+#pragma once
+
 #include <functional>
 
 #include <Arduino.h>
@@ -42,19 +44,19 @@ class DHT11 {
   int8_t getTemperature();
   int8_t getHumidity();
   const char* getError();
+
  private:
   uint8_t _pin;
   Callback _callback;
   Ticker _timer;
   int8_t _result;
+  char _errorStr[5];
+  volatile int8_t _data[5];
+  volatile uint8_t _counter;
+  volatile uint32_t _previousMicros;
   static void ICACHE_RAM_ATTR _handleRead(DHT11* instance);
   void ICACHE_RAM_ATTR _handleAck();
   void ICACHE_RAM_ATTR _handleData();
   static void ICACHE_RAM_ATTR _timeout(DHT11* instance);
   void ICACHE_RAM_ATTR _tryCallback();
-private:
-  char _errorStr[5];
-  volatile int8_t _data[5];
-  volatile uint8_t _counter;
-  volatile uint32_t _previousMicros;
 };
