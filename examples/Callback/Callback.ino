@@ -30,11 +30,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <DHT11.h>
 
 Ticker ticker;
-bool DHTFlag = false;
 DHT11 dht11;
 
-void setDHTFlag() {
-  DHTFlag = true;
+void readDHT() {
+  dht11.read();
 }
 
 void setup() {
@@ -42,25 +41,13 @@ void setup() {
   dht11.setPin(D4);
   dht11.setCallback([](int8_t result) {
     if (result > 0) {
-      uint32_t micros[40];
-      dht11.getMicros(micros);
-      Serial.print("Raw data:\n");
-      for (uint8_t i = 0; i < 40; ++i) {
-        Serial.println(micros[i]);
-      }
-      Serial.printf("Temp: %i°C\n", dht11.getTemp());
-      Serial.printf("Humid: %i%%\n", dht11.getHumid());
+      Serial.printf("Temp: %i°C\n", dht11.getTemperature());
+      Serial.printf("Humid: %i%%\n", dht11.getHumidity());
     } else {
       Serial.printf("Error: %s\n", dht11.getError());
     }
   });
-  ticker.attach(30, setDHTFlag);
+  ticker.attach(30, readDHT);
 }
 
-void loop() {
-  if (DHTFlag) {
-    DHTFlag = false;
-    Serial.print("\nStart acquiring\n");
-    dht11.read();
-  }
-}
+void loop() {}

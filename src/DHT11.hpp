@@ -39,12 +39,9 @@ class DHT11 {
   void setCallback(Callback cb);
   void read();
   const int8_t ready() const;
-  int8_t getTemp();
-  int8_t getHumid();
-  int8_t getChecksum();
+  int8_t getTemperature();
+  int8_t getHumidity();
   const char* getError();
-  // TODO(bertmelis) remove getMicros after debugging
-  void getMicros(uint32_t* array) { for (uint8_t i = 0; i < 40; ++i) array[i] = _micros[i]; }
  private:
   uint8_t _pin;
   Callback _callback;
@@ -54,11 +51,10 @@ class DHT11 {
   void ICACHE_RAM_ATTR _handleAck();
   void ICACHE_RAM_ATTR _handleData();
   static void ICACHE_RAM_ATTR _timeout(DHT11* instance);
+  void ICACHE_RAM_ATTR _tryCallback();
 private:
   char _errorStr[5];
   volatile int8_t _data[5];
   volatile uint8_t _counter;
   volatile uint32_t _previousMicros;
-  // TODO(bertmelis) remove _micros after debugging
-  uint32_t _micros[40];
 };
