@@ -109,7 +109,7 @@ void DHT11::_handleAck() {
       schedule_function(std::bind(_callback, _result));
   } else {
     detachInterrupt(_pin);
-    _micros[0] = _previousMicros = micros();
+    _previousMicros = micros();
     attachInterrupt(_pin, std::bind(&DHT11::_handleData, this), FALLING);
     _counter = 0;
   }
@@ -118,7 +118,7 @@ void DHT11::_handleAck() {
 void DHT11::_handleData() {
   uint32_t delta = micros() - _previousMicros;
   // TODO(bertmelis) remove next line after debugging
-  _micros[_counter + 1] = delta;
+  _micros[_counter] = delta;
   _previousMicros = micros();
   if (delta > 120) {
     _data[_counter / 8] = (_data[_counter / 8] << 1) + 1;  // shift left and add 1

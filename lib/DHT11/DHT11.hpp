@@ -44,7 +44,7 @@ class DHT11 {
   int8_t getChecksum();
   const char* getError();
   // TODO(bertmelis) remove getMicros after debugging
-  void getMicros(uint32_t* array) { for (uint8_t i = 0; i < 41; ++i) array[i] = _micros[i]; }
+  void getMicros(uint32_t* array) { for (uint8_t i = 0; i < 40; ++i) array[i] = _micros[i]; }
  private:
   uint8_t _pin;
   Callback _callback;
@@ -60,5 +60,5 @@ private:
   volatile uint8_t _counter;
   volatile uint32_t _previousMicros;
   // TODO(bertmelis) remove _micros after debugging
-  uint32_t _micros[41];
+  uint32_t _micros[40];
 };
