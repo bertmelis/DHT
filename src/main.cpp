@@ -45,7 +45,7 @@ void setup() {
       uint32_t micros[40];
       dht11.getMicros(micros);
       Serial.print("Raw data:\n");
-      for (uint8_t i = 1; i < 40; ++i) {
+      for (uint8_t i = 0; i < 40; ++i) {
         Serial.println(micros[i]);
       }
       Serial.printf("Temp: %i°C\n", dht11.getTemp());
