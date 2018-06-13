@@ -34,29 +34,45 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 typedef std::function<void(int8_t)> Callback;
 
-class DHT11 {
+class DHT {
  public:
-  DHT11();
+  DHT();
   void setPin(uint8_t pin);
   void setCallback(Callback cb);
   void read();
   const int8_t ready() const;
-  int8_t getTemperature();
-  int8_t getHumidity();
+  virtual float getTemperature() = 0;
+  virtual float getHumidity() = 0;
   const char* getError();
+
+ protected:
+  int8_t _result;
+  volatile int8_t _data[5];
 
  private:
   uint8_t _pin;
   Callback _callback;
   Ticker _timer;
-  int8_t _result;
   char _errorStr[5];
-  volatile int8_t _data[5];
   volatile uint8_t _counter;
   volatile uint32_t _previousMicros;
-  static void ICACHE_RAM_ATTR _handleRead(DHT11* instance);
+  static void ICACHE_RAM_ATTR _handleRead(DHT* instance);
   void ICACHE_RAM_ATTR _handleAck();
   void ICACHE_RAM_ATTR _handleData();
-  static void ICACHE_RAM_ATTR _timeout(DHT11* instance);
+  static void ICACHE_RAM_ATTR _timeout(DHT* instance);
   void ICACHE_RAM_ATTR _tryCallback();
+};
+
+class DHT11 : public DHT {
+ public:
+  DHT11();
+  float getTemperature();
+  float getHumidity();
+};
+
+class DHT22 : public DHT {
+ public:
+  DHT22();
+  float getTemperature();
+  float getHumidity();
 };

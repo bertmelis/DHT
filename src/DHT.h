@@ -23,31 +23,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
+#pragma once
 
-#include <Arduino.h>
-#include <Ticker.h>
-
-#include <DHT.h>
-
-Ticker ticker;
-DHT22 dht22;
-
-void readDHT() {
-  dht22.read();
-}
-
-void setup() {
-  Serial.begin(74880);
-  dht22.setPin(D4);
-  ticker.attach(30, readDHT);
-}
-
-void loop() {
-  int8_t result = dht22.ready();
-  if (result > 0) {
-    Serial.printf("Temp: %.1f°C\n", dht22.getTemperature());
-    Serial.printf("Humid: %.1f%%\n", dht22.getHumidity());
-  } else if (result < 0) {
-    Serial.printf("Error: %s\n", dht22.getError());
-  }
-}
+#include "DHT.hpp"
