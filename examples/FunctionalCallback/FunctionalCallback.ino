@@ -23,40 +23,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-#pragma once
-
-#include <functional>
 
 #include <Arduino.h>
 #include <Ticker.h>
-#include <FunctionalInterrupt.h>
-#include <Schedule.h>
 
-typedef std::function<void(int8_t)> Callback;
+#include <DHT.h>
 
-class DHT11 {
- public:
-  DHT11();
-  void setPin(uint8_t pin);
-  void setCallback(Callback cb);
-  void read();
-  const int8_t ready() const;
-  int8_t getTemperature();
-  int8_t getHumidity();
-  const char* getError();
+Ticker ticker;
+DHT11 dht11;
 
- private:
-  uint8_t _pin;
-  Callback _callback;
-  Ticker _timer;
-  int8_t _result;
-  char _errorStr[5];
-  volatile int8_t _data[5];
-  volatile uint8_t _counter;
-  volatile uint32_t _previousMicros;
-  static void ICACHE_RAM_ATTR _handleRead(DHT11* instance);
-  void ICACHE_RAM_ATTR _handleAck();
-  void ICACHE_RAM_ATTR _handleData();
-  static void ICACHE_RAM_ATTR _timeout(DHT11* instance);
-  void ICACHE_RAM_ATTR _tryCallback();
-};
+void readDHT() {
+  dht11.read();
+}
+
+void setup() {
+  Serial.begin(74880);
+  dht11.setPin(D4);
+  dht11.setCallback([](int8_t result) {
+    if (result > 0) {
+      Serial.printf("Temp: %g°C\n", dht11.getTemperature());
+      Serial.printf("Humid: %g%%\n", dht11.getHumidity());
+    } else {
+      Serial.printf("Error: %s\n", dht11.getError());
+    }
+  });
+  ticker.attach(30, readDHT);
+}
+
+void loop() {}

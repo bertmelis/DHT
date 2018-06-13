@@ -14,7 +14,9 @@ The inner working of the lib relies completely on pin interrupts and timers.
 
 ## Usage
 
-2 simple examples are included. I tested on a Wemos D1 mini (with Wemos DHT11 shield).
+2 simple examples are included. I tested on a Wemos D1 mini (with Wemos DHT11 shield and a seperate DHT22 sensor).
+
+For DHT22, just replace `DHT11` by `DHT22` (and change the object's).
 
 Reading the sensor using a callback (mind the `loop()` being empty):
 ```C++

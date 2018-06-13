@@ -23,51 +23,41 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-#include <DHT11.hpp>  // NOLINT
+#include <DHT.hpp>  // NOLINT
 
-DHT11::DHT11() :
+DHT::DHT() :
+  _result(0),
+  _data{0},
   _pin(0),
   _callback(nullptr),
   _timer(),
-  _result(0),
   _errorStr{0},
-  _data{0},
   _counter(0),
   _previousMicros(0) {}
 
-void DHT11::setPin(uint8_t pin) {
+void DHT::setPin(uint8_t pin) {
   _pin = pin;
   pinMode(_pin, OUTPUT);
   digitalWrite(_pin, HIGH);
 }
 
-void DHT11::setCallback(Callback cb) {
+void DHT::setCallback(Callback cb) {
   _callback = cb;
 }
 
-void DHT11::read() {
+void DHT::read() {
   _data[0] = _data[1] = _data[2] = _data[3] = _data[4] = 0;
   _counter = 0;
   _result = 0;
   digitalWrite(_pin, LOW);
-  _timer.once_ms(20, &DHT11::_handleRead, this);
+  _timer.once_ms(20, &DHT::_handleRead, this);
 }
 
-const int8_t DHT11::ready() const {
+const int8_t DHT::ready() const {
   return _result;
 }
 
-int8_t DHT11::getTemperature() {
-  _result = 0;
-  return _data[2];
-}
-
-int8_t DHT11::getHumidity() {
-  _result = 0;
-  return _data[0];
-}
-
-const char* DHT11::getError() {
+const char* DHT::getError() {
   if (_result == 1) {
     strcpy(_errorStr, "OK");  // NOLINT
   } else if (_result == 0) {
@@ -85,15 +75,15 @@ const char* DHT11::getError() {
   return _errorStr;
 }
 
-void DHT11::_handleRead(DHT11* instance) {
-  instance->_timer.once_ms(1000, &DHT11::_timeout, instance);
-  attachInterrupt(instance->_pin, std::bind(&DHT11::_handleAck, instance), FALLING);
+void DHT::_handleRead(DHT* instance) {
+  instance->_timer.once_ms(1000, &DHT::_timeout, instance);
+  attachInterrupt(instance->_pin, std::bind(&DHT::_handleAck, instance), FALLING);
   instance->_previousMicros = 0;
   instance->_previousMicros = micros();
   pinMode(instance->_pin, INPUT);
 }
 
-void DHT11::_handleAck() {
+void DHT::_handleAck() {
   if (_counter == 0) {
     ++_counter;
   } else if (micros() - _previousMicros < 160) {
@@ -106,18 +96,19 @@ void DHT11::_handleAck() {
   } else {
     detachInterrupt(_pin);
     _previousMicros = micros();
-    attachInterrupt(_pin, std::bind(&DHT11::_handleData, this), FALLING);
+    attachInterrupt(_pin, std::bind(&DHT::_handleData, this), FALLING);
     _counter = 0;
   }
 }
 
-void DHT11::_handleData() {
+void DHT::_handleData() {
   uint32_t delta = micros() - _previousMicros;
   _previousMicros = micros();
-  if (delta > 120) {
-    _data[_counter / 8] = (_data[_counter / 8] << 1) + 1;  // shift left and add 1
-  } else if (delta > 70) {
-    _data[_counter / 8] = _data[_counter / 8] << 1;  // only shift left (add zero)
+  if (delta > 70 && delta < 160) {
+    _data[_counter / 8] <<= 1;  // shift left
+    if (delta > 120) {
+      _data[_counter / 8] |= 1;
+    }
   } else {
     _timer.detach();
     detachInterrupt(_pin);
@@ -139,13 +130,43 @@ void DHT11::_handleData() {
   }
 }
 
-void DHT11::_timeout(DHT11* instance) {
+void DHT::_timeout(DHT* instance) {
   instance->_timer.detach();
   detachInterrupt(instance->_pin);
   instance->_result = -1;  // timeout
   instance->_tryCallback();
 }
 
-void DHT11::_tryCallback() {
+void DHT::_tryCallback() {
   if (_callback) schedule_function(std::bind(_callback, _result));
+}
+
+DHT11::DHT11() :
+  DHT() {}
+
+float DHT11::getTemperature() {
+  _result = 0;
+  return static_cast<float>(_data[2]);
+}
+
+float DHT11::getHumidity() {
+  _result = 0;
+    return static_cast<float>(_data[0]);
+}
+
+DHT22::DHT22() :
+  DHT() {}
+
+float DHT22::getTemperature() {
+  _result = 0;
+  float temp = word(_data[2] & 0x7F, _data[3]) * 0.1;
+  if (_data[2] & 0x80) {  // negative temperature
+    temp = -temp;
+  }
+  return temp;
+}
+
+float DHT22::getHumidity() {
+  _result = 0;
+  return word(_data[0], _data[1]) * 0.1;
 }
