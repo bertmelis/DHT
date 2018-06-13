@@ -8,7 +8,6 @@ DHT11	KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
-#VitoWifi
 setPin	KEYWORD2
 setCallback	KEYWORD2
 read	KEYWORD2
