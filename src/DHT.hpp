@@ -44,7 +44,7 @@ class DHT {
   virtual float getTemperature() = 0;
   virtual float getHumidity() = 0;
   const char* getError();
- 
+
  protected:
   int8_t _result;
   volatile int8_t _data[5];
