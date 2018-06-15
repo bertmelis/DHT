@@ -1,6 +1,6 @@
 # DHT
 
-[![Build Status](https://travis-ci.org/bertmelis/DHT.svg?branch=master)](https://travis-ci.org/bertmelis/DHT)
+[![Build Status](https://travis-ci.com/bertmelis/DHT.svg?branch=master)](https://travis-ci.com/bertmelis/DHT)
 
 DHT temperature and humidity sensor library for the Arduino framework for ESP8266.
 
