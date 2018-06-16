@@ -78,7 +78,6 @@ const char* DHT::getError() {
 void DHT::_handleRead(DHT* instance) {
   instance->_timer.once_ms(1000, &DHT::_timeout, instance);
   attachInterrupt(instance->_pin, std::bind(&DHT::_handleAck, instance), FALLING);
-  instance->_previousMicros = 0;
   instance->_previousMicros = micros();
   pinMode(instance->_pin, INPUT);
 }
@@ -133,6 +132,8 @@ void DHT::_handleData() {
 void DHT::_timeout(DHT* instance) {
   instance->_timer.detach();
   detachInterrupt(instance->_pin);
+  pinMode(instance->_pin, OUTPUT);
+  digitalWrite(instance->_pin, HIGH);
   instance->_result = -1;  // timeout
   instance->_tryCallback();
 }
@@ -151,7 +152,7 @@ float DHT11::getTemperature() {
 
 float DHT11::getHumidity() {
   _result = 0;
-    return static_cast<float>(_data[0]);
+  return static_cast<float>(_data[0]);
 }
 
 DHT22::DHT22() :
