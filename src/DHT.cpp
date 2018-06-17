@@ -103,14 +103,16 @@ void DHT::_handleAck() {
 void DHT::_handleData() {
   uint32_t delta = micros() - _previousMicros;
   _previousMicros = micros();
-  if (delta > 70 && delta < 160) {
+  if (delta > 60 && delta < 160) {  // 60µs is to allow first bit which comes in a bit "early".
     _data[_counter / 8] <<= 1;  // shift left
     if (delta > 120) {
       _data[_counter / 8] |= 1;
     }
   } else {
-    _timer.detach();
     detachInterrupt(_pin);
+    pinMode(_pin, OUTPUT);
+    digitalWrite(_pin, HIGH);
+    _timer.detach();
     _result = -3;  // data error
     _tryCallback();
   }
