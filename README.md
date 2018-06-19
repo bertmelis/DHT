@@ -7,6 +7,9 @@ DHT temperature and humidity sensor library for the Arduino framework for ESP826
 This is yet another DHT library but it does come with a difference. It is completely non blocking so doesn't use `delay()`, anywhere. Reading the sensor's values is possible using the Arduino `loop()` or using a callback function.
 The inner working of the lib relies completely on pin interrupts and timers.
 
+## WARNING:
+Due to a memory leak in FunctionalInterrupt in the Arduino core, on which this library depends, this library is not considered stable. A fix is on it's way. So if you use this library, a crash **will** occur.
+
 ## Installation
 
 * For Arduino IDE: see [the Arduino Guide](https://www.arduino.cc/en/Guide/Libraries#toc4)
