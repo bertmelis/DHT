@@ -8,7 +8,8 @@ This is yet another DHT library but it does come with a difference. It is comple
 The inner working of the lib relies completely on pin interrupts and timers.
 
 ## WARNING:
-Due to a memory leak in FunctionalInterrupt in the Arduino core, on which this library depends, this library is not considered stable. A fix is on it's way. So if you use this library, a crash **will** occur.
+This library is only stable using the git version of the Arduino core for ESP8266.
+Please follow these instructions to get it going: [using git version](https://github.com/esp8266/Arduino#using-git-version)
 
 ## Installation
 
