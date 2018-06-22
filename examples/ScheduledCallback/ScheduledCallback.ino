@@ -26,28 +26,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include <Ticker.h>
+#include <Schedule.h>
 
 #include <DHT.h>
 
 Ticker ticker;
-DHT22 dht22;
+DHT11 dht11;
 
 void readDHT() {
-  dht22.read();
+  dht11.read();
 }
 
 void setup() {
   Serial.begin(74880);
-  dht22.setPin(D4);
+  dht11.setPin(D4);
+  dht11.setCallback([](int8_t result) {
+    schedule_function(std::bind([](int8_t result){
+      if (result > 0) {
+        result = 0;
+        Serial.printf("Temp: %g°C\n", dht11.getTemperature());
+        Serial.printf("Humid: %g%%\n", dht11.getHumidity());
+      } else {
+        result = 0;
+        Serial.printf("Error: %s\n", dht11.getError());
+      }
+    }, result));
+  });
   ticker.attach(30, readDHT);
 }
 
 void loop() {
-  static int8_t result = dht22.ready();
-  if (result > 0) {
-    Serial.printf("Temp: %.1f°C\n", dht22.getTemperature());
-    Serial.printf("Humid: %.1f%%\n", dht22.getHumidity());
-  } else if (result < 0) {
-    Serial.printf("Error: %s\n", dht22.getError());
-  }
+  // the callback will be ran after the next loop()
 }

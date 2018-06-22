@@ -141,7 +141,7 @@ void DHT::_timeout(DHT* instance) {
 }
 
 void DHT::_tryCallback() {
-  if (_callback) schedule_function(std::bind(_callback, _result));
+  if (_callback) _callback(_result);
 }
 
 DHT11::DHT11() :

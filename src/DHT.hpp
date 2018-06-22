@@ -30,7 +30,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Arduino.h>
 #include <Ticker.h>
 #include <FunctionalInterrupt.h>
-#include <Schedule.h>
 
 typedef std::function<void(int8_t)> Callback;
 

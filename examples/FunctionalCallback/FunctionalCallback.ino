@@ -31,6 +31,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Ticker ticker;
 DHT11 dht11;
+volatile int8_t result = 0;
 
 void readDHT() {
   dht11.read();
@@ -39,15 +40,19 @@ void readDHT() {
 void setup() {
   Serial.begin(74880);
   dht11.setPin(D4);
-  dht11.setCallback([](int8_t result) {
-    if (result > 0) {
-      Serial.printf("Temp: %g°C\n", dht11.getTemperature());
-      Serial.printf("Humid: %g%%\n", dht11.getHumidity());
-    } else {
-      Serial.printf("Error: %s\n", dht11.getError());
-    }
+  dht11.setCallback([](int8_t res) {
+    result = res;
   });
   ticker.attach(30, readDHT);
 }
 
-void loop() {}
+void loop() {
+  if (result > 0) {
+    result = 0;
+    Serial.printf("Temp: %g°C\n", dht11.getTemperature());
+    Serial.printf("Humid: %g%%\n", dht11.getHumidity());
+  } else {
+    result = 0;
+    Serial.printf("Error: %s\n", dht11.getError());
+  }
+}

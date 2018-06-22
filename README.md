@@ -18,15 +18,18 @@ Due to a memory leak in FunctionalInterrupt in the Arduino core, on which this l
 ## Usage
 
 2 simple examples are included. I tested on a Wemos D1 mini (with Wemos DHT11 shield and a seperate DHT22 sensor).
+Keep in mind that this library is interrupt driven. Your callback function will also be called from within an interrupt. The callback therefore should be short, fast and not contain any interrupt driven tasks (like Serial).
+To overcome you can bind your code to "Schedule" and run your code at the next loop()-call.
 
 For DHT22, just replace `DHT11` by `DHT22` (and change the object's).
 
-Reading the sensor using a callback (mind the `loop()` being empty):
+Reading the sensor using a callback:
 ```C++
 #include <Arduino.h>
 #include <Ticker.h>
+#include <Schedule.h>
 
-#include <DHT11.h>
+#include <DHT.h>
 
 Ticker ticker;
 DHT11 dht11;
@@ -39,17 +42,24 @@ void setup() {
   Serial.begin(74880);
   dht11.setPin(D4);
   dht11.setCallback([](int8_t result) {
-    if (result > 0) {
-      Serial.printf("Temp: %i°C\n", dht11.getTemperature());
-      Serial.printf("Humid: %i%%\n", dht11.getHumidity());
-    } else {
-      Serial.printf("Error: %s\n", dht11.getError());
-    }
+    schedule_function(std::bind([](int8_t result){
+      if (result > 0) {
+        result = 0;
+        Serial.printf("Temp: %g°C\n", dht11.getTemperature());
+        Serial.printf("Humid: %g%%\n", dht11.getHumidity());
+      } else {
+        result = 0;
+        Serial.printf("Error: %s\n", dht11.getError());
+      }
+    }, result));
   });
   ticker.attach(30, readDHT);
 }
 
-void loop() {}
+void loop() {
+  // the callback will be ran after the next loop()
+}
+
 ```
 
 Read the sensor by polling the status in `loop()`:
