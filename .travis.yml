@@ -12,7 +12,6 @@ env:
     - PLATFORMIO_CI_SRC=examples/Callback/Callback.ino PLATFORMIO_CI_EXTRA_ARGS="--board=d1_mini"
     - PLATFORMIO_CI_SRC=examples/FunctionalCallback/FunctionalCallback.ino PLATFORMIO_CI_EXTRA_ARGS="--board=d1_mini"
     - PLATFORMIO_CI_SRC=examples/ScheduledCallback/ScheduledCallback.ino PLATFORMIO_CI_EXTRA_ARGS="--board=d1_mini"
-    - PLATFORMIO_CI_SRC=examples/ScheduledCallback/FunctionalCallback.ino PLATFORMIO_CI_EXTRA_ARGS="--board=d1_mini"
     - PLATFORMIO_CI_SRC=examples/Loop/Loop.ino PLATFORMIO_CI_EXTRA_ARGS="--board=d1_mini"
     - CPPLINT=true
 
