@@ -103,7 +103,7 @@ void DHT::_handleAck() {
 void DHT::_handleData() {
   uint32_t delta = micros() - _previousMicros;
   _previousMicros = micros();
-  if (delta > 60 && delta < 160) {  // 60µs is to allow first bit which comes in a bit "early".
+  if (delta > 50 && delta < 160) {  // 50µs is to allow first bit which comes in a bit "early".
     _data[_counter / 8] <<= 1;  // shift left
     if (delta > 120) {
       _data[_counter / 8] |= 1;
