@@ -46,7 +46,7 @@ class DHT {
 
  protected:
   volatile int8_t _result;
-  volatile int8_t _data[5];
+  volatile uint8_t _data[5];
 
  private:
   uint8_t _pin;
