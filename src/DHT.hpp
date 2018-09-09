@@ -45,7 +45,7 @@ class DHT {
   const char* getError();
 
  protected:
-  int8_t _result;
+  volatile int8_t _result;
   volatile int8_t _data[5];
 
  private:

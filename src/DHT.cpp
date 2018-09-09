@@ -122,7 +122,7 @@ void DHT::_handleData() {
     pinMode(_pin, OUTPUT);
     digitalWrite(_pin, HIGH);
     _timer.detach();
-    if (_data[0] + _data[1] + _data[2] + _data[3] == (_data[4] & 0xFF)) {
+    if (_data[4] == ((_data[0] + _data[1] + _data[2] + _data[3]) & 0xFF)) {
       _result = 1;
     } else {
       _result = -4;  // checksum error
