@@ -31,28 +31,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Ticker.h>
 #include <FunctionalInterrupt.h>
 
-typedef std::function<void(int8_t)> Callback;
+namespace DHTInternals {
+
+typedef std::function<void(float, float)> OnData_CB;
+typedef std::function<void(uint8_t)> OnError_CB;
+
+}  // end namespace DHTInternals
 
 class DHT {
  public:
   DHT();
   void setPin(uint8_t pin);
-  void setCallback(Callback cb);
+  void onData(DHTInternals::OnData_CB callback);
+  void onError(DHTInternals::OnError_CB callback);
   void read();
-  const int8_t ready() const;
-  virtual float getTemperature() = 0;
-  virtual float getHumidity() = 0;
-  const char* getError();
+  const char* getError() const;
 
  protected:
-  volatile int8_t _result;
+  volatile uint8_t _status;
   volatile uint8_t _data[5];
 
  private:
   uint8_t _pin;
-  Callback _callback;
+  DHTInternals::OnData_CB _onData;
+  DHTInternals::OnError_CB _onError;
   Ticker _timer;
-  char _errorStr[5];
   volatile uint8_t _counter;
   volatile uint32_t _previousMicros;
   static void ICACHE_RAM_ATTR _handleRead(DHT* instance);
@@ -60,18 +63,18 @@ class DHT {
   void ICACHE_RAM_ATTR _handleData();
   static void ICACHE_RAM_ATTR _timeout(DHT* instance);
   void ICACHE_RAM_ATTR _tryCallback();
+  virtual float _getHumidity() = 0;
+  virtual float _getTemperature() = 0;
 };
 
 class DHT11 : public DHT {
- public:
-  DHT11();
-  float getTemperature();
-  float getHumidity();
+ private:
+  float _getHumidity();
+  float _getTemperature();
 };
 
 class DHT22 : public DHT {
- public:
-  DHT22();
-  float getTemperature();
-  float getHumidity();
+ private:
+  float _getHumidity();
+  float _getTemperature();
 };

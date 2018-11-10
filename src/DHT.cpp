@@ -26,12 +26,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <DHT.hpp>  // NOLINT
 
 DHT::DHT() :
-  _result(0),
+  _status(0),
   _data{0},
   _pin(0),
-  _callback(nullptr),
+  _onData(nullptr),
+  _onError(nullptr),
   _timer(),
-  _errorStr{0},
   _counter(0),
   _previousMicros(0) {}
 
@@ -41,38 +41,33 @@ void DHT::setPin(uint8_t pin) {
   digitalWrite(_pin, HIGH);
 }
 
-void DHT::setCallback(Callback cb) {
-  _callback = cb;
+void DHT::onData(DHTInternals::OnData_CB callback) {
+  _onData = callback;
+}
+
+void DHT::onError(DHTInternals::OnError_CB callback) {
+  _onError = callback;
 }
 
 void DHT::read() {
   _data[0] = _data[1] = _data[2] = _data[3] = _data[4] = 0;
   _counter = 0;
-  _result = 0;
+  _status = 0;
   digitalWrite(_pin, LOW);
   _timer.once_ms(20, &DHT::_handleRead, this);
 }
 
-const int8_t DHT::ready() const {
-  return _result;
-}
-
-const char* DHT::getError() {
-  if (_result == 1) {
-    strcpy(_errorStr, "OK");  // NOLINT
-  } else if (_result == 0) {
-    strcpy(_errorStr, "BUSY");  // NOLINT
-  } else if (_result == -1) {
-    strcpy(_errorStr, "TO");   // NOLINT
-  } else if (_result == -2) {
-    strcpy(_errorStr, "NACK");   // NOLINT
-  } else if (_result == -3) {
-    strcpy(_errorStr, "DATA");   // NOLINT
-  } else if (_result == -4) {
-    strcpy(_errorStr, "CS");   // NOLINT
+const char* DHT::getError() const {
+  if (_status == 1) {
+    return "TO";
+  } else if (_status == 2) {
+    return "NACK";
+  } else if (_status == 3) {
+    return "DATA";
+  } else if (_status == 4) {
+    return "CS";
   }
-  _result = 0;
-  return _errorStr;
+  return "OK";
 }
 
 void DHT::_handleRead(DHT* instance) {
@@ -90,7 +85,7 @@ void DHT::_handleAck() {
       pinMode(_pin, OUTPUT);
       digitalWrite(_pin, HIGH);
       _timer.detach();
-      _result = -2;  // nack signal
+      _status = 2;  // nack signal
       _tryCallback();
   } else {
     detachInterrupt(_pin);
@@ -104,7 +99,7 @@ void DHT::_handleData() {
   uint32_t delta = micros() - _previousMicros;
   _previousMicros = micros();
   if (delta > 50 && delta < 160) {  // 50µs is to allow first bit which comes in a bit "early".
-    _data[_counter / 8] <<= 1;  // shift left
+    _data[_counter / 8] <<= 1;  // shift left (+ add 0)
     if (delta > 120) {
       _data[_counter / 8] |= 1;
     }
@@ -113,7 +108,7 @@ void DHT::_handleData() {
     pinMode(_pin, OUTPUT);
     digitalWrite(_pin, HIGH);
     _timer.detach();
-    _result = -3;  // data error
+    _status = 3;  // data error
     _tryCallback();
   }
   ++_counter;
@@ -123,9 +118,9 @@ void DHT::_handleData() {
     digitalWrite(_pin, HIGH);
     _timer.detach();
     if (_data[4] == ((_data[0] + _data[1] + _data[2] + _data[3]) & 0xFF)) {
-      _result = 1;
+      _status = 0;  // succes
     } else {
-      _result = -4;  // checksum error
+      _status = 4;  // checksum error
     }
     _tryCallback();
   }
@@ -136,40 +131,35 @@ void DHT::_timeout(DHT* instance) {
   detachInterrupt(instance->_pin);
   pinMode(instance->_pin, OUTPUT);
   digitalWrite(instance->_pin, HIGH);
-  instance->_result = -1;  // timeout
+  instance->_status = 1;  // timeout
   instance->_tryCallback();
 }
 
 void DHT::_tryCallback() {
-  if (_callback) _callback(_result);
+  if (_status == 0) {
+    if (_onData) _onData(_getHumidity(), _getTemperature());
+  } else {
+    if (_onError) _onError(_status);
+  }
 }
 
-DHT11::DHT11() :
-  DHT() {}
-
-float DHT11::getTemperature() {
-  _result = 0;
-  return static_cast<float>(_data[2]);
-}
-
-float DHT11::getHumidity() {
-  _result = 0;
+float DHT11::_getHumidity() {
   return static_cast<float>(_data[0]);
 }
 
-DHT22::DHT22() :
-  DHT() {}
+float DHT11::_getTemperature() {
+  return static_cast<float>(_data[2]);
+}
 
-float DHT22::getTemperature() {
-  _result = 0;
+float DHT22::_getHumidity() {
+  return word(_data[0], _data[1]) * 0.1;
+}
+
+
+float DHT22::_getTemperature() {
   float temp = word(_data[2] & 0x7F, _data[3]) * 0.1;
-  if (_data[2] & 0x80) {  // negative temperature
+  if (_data[2] & 0x80) {  // set high bit for negative temperature
     temp = -temp;
   }
   return temp;
-}
-
-float DHT22::getHumidity() {
-  _result = 0;
-  return word(_data[0], _data[1]) * 0.1;
 }

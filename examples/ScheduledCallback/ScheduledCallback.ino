@@ -23,6 +23,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
+/*
+Because the callbacks are called from an interrupt, you are limited
+in what you can do. To overcome you can "schedule" a function to run after
+the next loop() using 'schedule_function()'.
+*/
+
 
 #include <Arduino.h>
 #include <Ticker.h>
@@ -31,26 +37,33 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <DHT.h>
 
 Ticker ticker;
-DHT11 dht11;
+// create the right sensor!
+DHT11 sensor;
+// DHT22 sensor;
 
 void readDHT() {
-  dht11.read();
+  sensor.read();
 }
 
 void setup() {
   Serial.begin(74880);
-  dht11.setPin(D4);
-  dht11.setCallback([](int8_t result) {
-    schedule_function(std::bind([](int8_t result){
-      if (result > 0) {
-        result = 0;
-        Serial.printf("Temp: %g°C\n", dht11.getTemperature());
-        Serial.printf("Humid: %g%%\n", dht11.getHumidity());
-      } else {
-        result = 0;
-        Serial.printf("Error: %s\n", dht11.getError());
-      }
-    }, result));
+  sensor.setPin(D4);
+  /*
+  The following lines use a lambda function in which schedule_function() is called.
+  This function in it's turn takes a argument-less function which will be executes after
+  the next loop(). So another lambda is created with captured variables humidity and
+  temperature.
+  */
+  sensor.onData([](float humidity, float temperature) {
+    schedule_function([humidity, temperature]() {
+      Serial.printf("Temp: %g°C\n", temperature);
+      Serial.printf("Humid: %g%%\n", humidity);
+    });
+  });
+  sensor.onError([](uint8_t e) {
+    schedule_function([e]() {
+      Serial.printf("Error: %s\n", sensor.getError());
+    });
   });
   ticker.attach(30, readDHT);
 }

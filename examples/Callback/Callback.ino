@@ -30,33 +30,46 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <DHT.h>
 
 Ticker ticker;
-DHT11 dht11;
+// create the right sensor!
+DHT11 sensor;
+// DHT22 sensor;
+volatile float humidity = 0;
+volatile float temperature = 0;
+volatile uint8_t error = 0;
 volatile int8_t result = 0;
 
 void readDHT() {
-  dht11.read();
+  sensor.read();
 }
 
-// this callback will be call from an interrupt
+// this callback will be called from an interrupt
 // it should be short and carry the ICACHE_RAM_ATTR attribute
-void ICACHE_RAM_ATTR handleCallback(int8_t res) {
-  result = res;
+void ICACHE_RAM_ATTR handleData(float h, float t) {
+  humidity = h;
+  temperature = t;
+  result = 1;
+}
+
+// this callback will be called from an interrupt
+// it should be short and carry the ICACHE_RAM_ATTR attribute
+void ICACHE_RAM_ATTR handleError(uint8_t e) {
+  error = e;
+  result = -1;
 }
 
 void setup() {
   Serial.begin(74880);
-  dht11.setPin(D4);
-  dht11.setCallback(handleCallback);
+  sensor.setPin(D4);
+  sensor.onData(handleData);
+  sensor.onError(handleError);
   ticker.attach(30, readDHT);
 }
 
 void loop() {
   if (result > 0) {
-    result = 0;
-    Serial.printf("Temp: %g°C\n", dht11.getTemperature());
-    Serial.printf("Humid: %g%%\n", dht11.getHumidity());
-  } else {
-    result = 0;
-    Serial.printf("Error: %s\n", dht11.getError());
+    Serial.printf("Humid: %g%%\n", humidity);
+    Serial.printf("Temp: %g°C\n", temperature);
+  } else if (result < 0) {
+    Serial.printf("Error: %s\n", sensor.getError());
   }
 }
