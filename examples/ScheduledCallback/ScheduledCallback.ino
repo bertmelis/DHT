@@ -37,9 +37,7 @@ the next loop() using 'schedule_function()'.
 #include <DHT.h>
 
 Ticker ticker;
-// create the right sensor!
-DHT11 sensor;
-// DHT22 sensor;
+DHT22 sensor;  // change to DHT11 if needed!
 
 void readDHT() {
   sensor.read();

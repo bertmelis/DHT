@@ -30,9 +30,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <DHT.h>
 
 Ticker ticker;
-// create the right sensor!
-DHT11 sensor;
-// DHT22 sensor;
+DHT22 sensor;  // change to DHT11 if needed!
 volatile float humidity = 0;
 volatile float temperature = 0;
 volatile uint8_t error = 0;
