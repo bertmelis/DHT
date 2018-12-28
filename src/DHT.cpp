@@ -53,6 +53,12 @@ void DHT::read() {
   _data[0] = _data[1] = _data[2] = _data[3] = _data[4] = 0;
   _counter = 0;
   _status = 0;
+#if DHT_DEBUG
+  for (uint8_t i = 0; i < 41; ++i) {
+    _timings[i] = 0;
+  }
+  _index = 0;
+#endif
   digitalWrite(_pin, LOW);
   _timer.once_ms(20, &DHT::_handleRead, this);
 }
@@ -69,6 +75,14 @@ const char* DHT::getError() const {
   }
   return "OK";
 }
+
+#if DHT_DEBUG
+void DHT::getTimings(uint32_t* array) {
+  for (uint8_t i = 0; i < 41; ++i) {
+    array[i] = _timings[i];
+  }
+}
+#endif
 
 void DHT::_handleRead(DHT* instance) {
   instance->_timer.once_ms(1000, &DHT::_timeout, instance);
@@ -89,6 +103,9 @@ void DHT::_handleAck() {
       _tryCallback();
   } else {
     detachInterrupt(_pin);
+#if DHT_DEBUG
+      _timings[_index++] = micros() - _previousMicros;
+#endif
     _previousMicros = micros();
     attachInterrupt(_pin, std::bind(&DHT::_handleData, this), FALLING);
     _counter = 0;
@@ -103,6 +120,9 @@ void DHT::_handleData() {
     if (delta > 120) {
       _data[_counter / 8] |= 1;
     }
+#if DHT_DEBUG
+      _timings[_index++] = delta;
+#endif
   } else {
     detachInterrupt(_pin);
     pinMode(_pin, OUTPUT);

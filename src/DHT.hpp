@@ -31,6 +31,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Ticker.h>
 #include <FunctionalInterrupt.h>
 
+#ifndef DHT_DEBUG
+#define DHT_DEBUG 0
+#endif
+
 namespace DHTInternals {
 
 typedef std::function<void(float, float)> OnData_CB;
@@ -46,6 +50,9 @@ class DHT {
   void onError(DHTInternals::OnError_CB callback);
   void read();
   const char* getError() const;
+#ifdef DHT_DEBUG
+  void getTimings(uint32_t* array);  // array size should be 41
+#endif
 
  protected:
   volatile uint8_t _status;
@@ -65,6 +72,10 @@ class DHT {
   void ICACHE_RAM_ATTR _tryCallback();
   virtual float _getHumidity() = 0;
   virtual float _getTemperature() = 0;
+#ifdef DHT_DEBUG
+  volatile uint32_t _timings[41];  // will be populated on successful ACK from sensor
+  volatile uint8_t _index;
+#endif
 };
 
 class DHT11 : public DHT {
