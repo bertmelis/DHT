@@ -83,27 +83,30 @@ void DHT::_handleData() {
   _previousMicros = micros();
   if (_counter < -1) {  // pin pulled low by sensor to start ACK
     ++_counter;
-  } else if (_counter < 0) {  // pin pulled low by sensor to end ACK
+    return;
+  }
+  if (_counter < 0) {  // pin pulled low by sensor to end ACK
     if (delta < 130 || delta > 190) {  // relaxed datasheet limits with +/-20µs
       _stop(2);  // nack signal
     }
     ++_counter;
-  } else {
-    if (delta > 50 && delta < 160) {  // relaxed datasheet limits with +/-20µs
-      _data[_counter / 8] <<= 1;  // shift left (+ add 0)
-      if (delta > 120) {
-        _data[_counter / 8] |= 1;
-      }
-    } else {
-      _stop(3);  // data error
+    return;
+  }
+  // from here the usable bit pattern will come in
+  if (delta > 50 && delta < 160) {  // relaxed datasheet limits with +/-20µs
+    _data[_counter / 8] <<= 1;  // shift left (+ add 0)
+    if (delta > 120) {
+      _data[_counter / 8] |= 1;
     }
-    ++_counter;
-    if (_counter == 40) {
-      if (_data[4] == ((_data[0] + _data[1] + _data[2] + _data[3]) & 0xFF)) {
-        _stop(0);  // succes
-      } else {
-        _stop(4);  // checksum error
-      }
+  } else {
+    _stop(3);  // data error
+  }
+  ++_counter;
+  if (_counter == 40) {
+    if (_data[4] == ((_data[0] + _data[1] + _data[2] + _data[3]) & 0xFF)) {
+      _stop(0);  // succes
+    } else {
+      _stop(4);  // checksum error
     }
   }
 }
