@@ -56,11 +56,11 @@ class DHT {
   DHTInternals::OnData_CB _onData;
   DHTInternals::OnError_CB _onError;
   Ticker _timer;
-  volatile uint8_t _counter;
+  volatile int8_t _counter;
   volatile uint32_t _previousMicros;
   static void ICACHE_RAM_ATTR _handleRead(DHT* instance);
-  void ICACHE_RAM_ATTR _handleAck();
   void ICACHE_RAM_ATTR _handleData();
+  void ICACHE_RAM_ATTR _stop(uint8_t status);
   static void ICACHE_RAM_ATTR _timeout(DHT* instance);
   void ICACHE_RAM_ATTR _tryCallback();
   virtual float _getHumidity() = 0;

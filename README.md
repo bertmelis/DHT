@@ -7,7 +7,10 @@ For ESP32, please look into this repo [esp32DHT](https://github.com/bertmelis/es
 
 This is yet another DHT library but it does come with a difference. It is completely non blocking so doesn't use `delay()`, anywhere. The inner working of the lib relies completely on pin interrupts and timers.
 
+This library aims to be minimal. No bounds checks are in place, no extra calculation methods are available.
+
 ## WARNING:
+
 The Arduino Core version 2.4.1 suffers from a memory leak when using this library. Please use version 2.4.2 or above.
 
 ## Installation
@@ -20,8 +23,6 @@ The Arduino Core version 2.4.1 suffers from a memory leak when using this librar
 2 simple examples are included. I tested on a Wemos D1 mini (with Wemos DHT11 shield and a seperate DHT22 sensor).
 Keep in mind that this library is interrupt driven. Your callback function will also be called from within an interrupt.Therefore, the callback should be short, fast and not contain any interrupt driven tasks (like Serial).
 You can read the values and set a "flag" or bind your callback to "Schedule" and run your code at the next loop()-call.
-
-For DHT22, just replace `DHT11` by `DHT22` (and change the object's).
 
 Simple example:
 
@@ -68,7 +69,7 @@ void setup() {
 void loop() {
   if (result > 0) {
     Serial.printf("Humid: %g%%\n", humidity);
-    Serial.printf("Temp: %g°C\n", temperature);
+    Serial.printf("Temp: %gdegC\n", temperature);
   } else if (result < 0) {
     Serial.printf("Error: %s\n", sensor.getError());
   }

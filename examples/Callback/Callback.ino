@@ -66,8 +66,9 @@ void setup() {
 void loop() {
   if (result > 0) {
     Serial.printf("Humid: %g%%\n", humidity);
-    Serial.printf("Temp: %g°C\n", temperature);
+    Serial.printf("Temp: %gdegC\n", temperature);
   } else if (result < 0) {
     Serial.printf("Error: %s\n", sensor.getError());
   }
+  result = 0;
 }

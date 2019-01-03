@@ -54,7 +54,7 @@ void setup() {
   */
   sensor.onData([](float humidity, float temperature) {
     schedule_function([humidity, temperature]() {
-      Serial.printf("Temp: %g°C\n", temperature);
+      Serial.printf("Temp: %gdegC\n", temperature);
       Serial.printf("Humid: %g%%\n", humidity);
     });
   });
@@ -67,5 +67,5 @@ void setup() {
 }
 
 void loop() {
-  // the callback will be ran after the next loop()
+  // the callback will be run after the next loop()
 }
