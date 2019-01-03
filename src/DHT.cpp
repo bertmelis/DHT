@@ -91,8 +91,8 @@ void DHT::_handleData() {
   _previousMicros = micros();
   if (_counter < -1) {  // pin pulled low by sensor to start ACK
     ++_counter;
-  } else if (_counter < 0) {  // pin puled low by sensor to end ACK
-    if (delta < 140 || delta > 180) {
+  } else if (_counter < 0) {  // pin pulled low by sensor to end ACK
+    if (delta < 130 || delta > 190) {  // relaxed datasheet limits with +/-20µs
       detachInterrupt(_pin);
       pinMode(_pin, OUTPUT);
       digitalWrite(_pin, HIGH);
@@ -102,7 +102,7 @@ void DHT::_handleData() {
     }
     ++_counter;
   } else {
-    if (delta > 50 && delta < 150) {  // relaxed datasheet limits with +/-10µs
+    if (delta > 50 && delta < 160) {  // relaxed datasheet limits with +/-20µs
       _data[_counter / 8] <<= 1;  // shift left (+ add 0)
       if (delta > 120) {
         _data[_counter / 8] |= 1;
