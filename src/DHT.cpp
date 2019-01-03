@@ -51,16 +51,11 @@ void DHT::onError(DHTInternals::OnError_CB callback) {
 
 void DHT::read() {
   _data[0] = _data[1] = _data[2] = _data[3] = _data[4] = 0;
-  _counter = 0;
+  _counter = -2;
   _status = 0;
-#if DHT_DEBUG
-  for (uint8_t i = 0; i < 41; ++i) {
-    _timings[i] = 0;
-  }
-  _index = 0;
-#endif
   digitalWrite(_pin, LOW);
   _timer.once_ms(20, &DHT::_handleRead, this);
+  attachInterrupt(_pin, std::bind(&DHT::_handleData, this), FALLING);
 }
 
 const char* DHT::getError() const {
@@ -86,63 +81,53 @@ void DHT::getTimings(uint32_t* array) {
 
 void DHT::_handleRead(DHT* instance) {
   instance->_timer.once_ms(1000, &DHT::_timeout, instance);
-  attachInterrupt(instance->_pin, std::bind(&DHT::_handleAck, instance), FALLING);
-  instance->_previousMicros = micros();
+  // attachInterrupt(instance->_pin, std::bind(&DHT::_handleData, instance), FALLING);
   pinMode(instance->_pin, INPUT);
+  instance->_previousMicros = micros();
 }
 
-void DHT::_handleAck() {
-  if (_counter == 0) {
+void DHT::_handleData() {
+  uint32_t delta = micros() - _previousMicros;
+  _previousMicros = micros();
+  if (_counter < -1) {  // pin pulled low by sensor to start ACK
     ++_counter;
-  } else if (micros() - _previousMicros < 160) {
+  } else if (_counter < 0) {  // pin puled low by sensor to end ACK
+    if (delta < 140 || delta > 180) {
       detachInterrupt(_pin);
       pinMode(_pin, OUTPUT);
       digitalWrite(_pin, HIGH);
       _timer.detach();
       _status = 2;  // nack signal
       _tryCallback();
-  } else {
-    detachInterrupt(_pin);
-#if DHT_DEBUG
-      _timings[_index++] = micros() - _previousMicros;
-#endif
-    _previousMicros = micros();
-    attachInterrupt(_pin, std::bind(&DHT::_handleData, this), FALLING);
-    _counter = 0;
-  }
-}
-
-void DHT::_handleData() {
-  uint32_t delta = micros() - _previousMicros;
-  _previousMicros = micros();
-  if (delta > 50 && delta < 160) {  // 50µs is to allow first bit which comes in a bit "early".
-    _data[_counter / 8] <<= 1;  // shift left (+ add 0)
-    if (delta > 120) {
-      _data[_counter / 8] |= 1;
     }
-#if DHT_DEBUG
-      _timings[_index++] = delta;
-#endif
+    ++_counter;
   } else {
-    detachInterrupt(_pin);
-    pinMode(_pin, OUTPUT);
-    digitalWrite(_pin, HIGH);
-    _timer.detach();
-    _status = 3;  // data error
-    _tryCallback();
-  }
-  ++_counter;
-  if (_counter == 40) {
-    detachInterrupt(_pin);
-    pinMode(_pin, OUTPUT);
-    digitalWrite(_pin, HIGH);
-    _timer.detach();
-    if (_data[4] == ((_data[0] + _data[1] + _data[2] + _data[3]) & 0xFF)) {
-      _status = 0;  // succes
+    if (delta > 50 && delta < 150) {  // relaxed datasheet limits with +/-10µs
+      _data[_counter / 8] <<= 1;  // shift left (+ add 0)
+      if (delta > 120) {
+        _data[_counter / 8] |= 1;
+      }
     } else {
-      _status = 4;  // checksum error
+      detachInterrupt(_pin);
+      pinMode(_pin, OUTPUT);
+      digitalWrite(_pin, HIGH);
+      _timer.detach();
+      _status = 3;  // data error
+      _tryCallback();
     }
-    _tryCallback();
+    ++_counter;
+    if (_counter == 40) {
+      detachInterrupt(_pin);
+      pinMode(_pin, OUTPUT);
+      digitalWrite(_pin, HIGH);
+      _timer.detach();
+      if (_data[4] == ((_data[0] + _data[1] + _data[2] + _data[3]) & 0xFF)) {
+        _status = 0;  // succes
+      } else {
+        _status = 4;  // checksum error
+      }
+      _tryCallback();
+    }
   }
 }
 
