@@ -41,7 +41,7 @@ typedef std::function<void(uint8_t)> OnError_CB;
 class DHT {
  public:
   DHT();
-  void setPin(uint8_t pin);
+  void setup(uint8_t pin);
   void onData(DHTInternals::OnData_CB callback);
   void onError(DHTInternals::OnError_CB callback);
   void read();

@@ -35,7 +35,7 @@ DHT::DHT() :
   _counter(0),
   _previousMicros(0) {}
 
-void DHT::setPin(uint8_t pin) {
+void DHT::setup(uint8_t pin) {
   _pin = pin;
   pinMode(_pin, OUTPUT);
   digitalWrite(_pin, HIGH);
