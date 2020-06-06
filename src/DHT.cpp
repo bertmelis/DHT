@@ -55,7 +55,7 @@ void DHT::read() {
   _status = 0;
   digitalWrite(_pin, LOW);
   _timer.once_ms(20, &DHT::_handleRead, this);
-  attachInterrupt(_pin, std::bind(&DHT::_handleData, this), FALLING);
+  attachInterruptArg(_pin, &DHT::_handleData, this, FALLING);
 }
 
 const char* DHT::getError() const {
@@ -71,42 +71,43 @@ const char* DHT::getError() const {
   return "OK";
 }
 
-void DHT::_handleRead(DHT* instance) {
-  instance->_timer.once_ms(1000, &DHT::_timeout, instance);
+void DHT::_handleRead(DHT* a) {
+  a->_timer.once_ms(1000, &DHT::_timeout, a);
   // attachInterrupt(instance->_pin, std::bind(&DHT::_handleData, instance), FALLING);
-  pinMode(instance->_pin, INPUT);
-  instance->_previousMicros = micros();
+  pinMode(a->_pin, INPUT);
+  a->_previousMicros = micros();
 }
 
-void DHT::_handleData() {
-  uint32_t delta = micros() - _previousMicros;
-  _previousMicros = micros();
-  if (_counter < -1) {  // pin pulled low by sensor to start ACK
-    ++_counter;
+void DHT::_handleData(void* a) {
+  DHT* d = reinterpret_cast<DHT*>(a);
+  uint32_t delta = micros() - d->_previousMicros;
+  d->_previousMicros = micros();
+  if (d->_counter < -1) {  // pin pulled low by sensor to start ACK
+    ++(d->_counter);
     return;
   }
-  if (_counter < 0) {  // pin pulled low by sensor to end ACK
+  if (d->_counter < 0) {  // pin pulled low by sensor to end ACK
     if (delta < 130 || delta > 190) {  // relaxed datasheet limits with +/-20µs
-      _stop(2);  // nack signal
+      d->_stop(2);  // nack signal
     }
-    ++_counter;
+    ++(d->_counter);
     return;
   }
   // from here the usable bit pattern will come in
   if (delta > 50 && delta < 160) {  // relaxed datasheet limits with +/-20µs
-    _data[_counter / 8] <<= 1;  // shift left (+ add 0)
+    d->_data[d->_counter / 8] <<= 1;  // shift left (+ add 0)
     if (delta > 120) {
-      _data[_counter / 8] |= 1;
+      d->_data[d->_counter / 8] |= 1;
     }
   } else {
-    _stop(3);  // data error
+    d->_stop(3);  // data error
   }
-  ++_counter;
-  if (_counter == 40) {
-    if (_data[4] == ((_data[0] + _data[1] + _data[2] + _data[3]) & 0xFF)) {
-      _stop(0);  // succes
+  ++(d->_counter);
+  if (d->_counter == 40) {
+    if (d->_data[4] == ((d->_data[0] + d->_data[1] + d->_data[2] + d->_data[3]) & 0xFF)) {
+      d->_stop(0);  // succes
     } else {
-      _stop(4);  // checksum error
+      d->_stop(4);  // checksum error
     }
   }
 }
@@ -120,13 +121,13 @@ void DHT::_stop(uint8_t status) {
   _tryCallback();
 }
 
-void DHT::_timeout(DHT* instance) {
-  instance->_timer.detach();
-  detachInterrupt(instance->_pin);
-  pinMode(instance->_pin, OUTPUT);
-  digitalWrite(instance->_pin, HIGH);
-  instance->_status = 1;  // timeout
-  instance->_tryCallback();
+void DHT::_timeout(DHT* a) {
+  a->_timer.detach();
+  detachInterrupt(a->_pin);
+  pinMode(a->_pin, OUTPUT);
+  digitalWrite(a->_pin, HIGH);
+  a->_status = 1;  // timeout
+  a->_tryCallback();
 }
 
 void DHT::_tryCallback() {
