@@ -57,7 +57,7 @@ void ICACHE_RAM_ATTR handleError(uint8_t e) {
 
 void setup() {
   Serial.begin(74880);
-  sensor.setPin(D4);
+  sensor.setup(D4);
   sensor.onData(handleData);
   sensor.onError(handleError);
   ticker.attach(30, readDHT);

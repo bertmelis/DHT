@@ -45,7 +45,7 @@ void readDHT() {
 
 void setup() {
   Serial.begin(74880);
-  sensor.setPin(D4);
+  sensor.setup(D4);
   /*
   The following lines use a lambda function in which schedule_function() is called.
   This function in it's turn takes a argument-less function which will be executes after
