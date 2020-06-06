@@ -9,10 +9,6 @@ This is yet another DHT library but it does come with a difference. It is comple
 
 This library aims to be minimal. No bounds checks are in place, no extra calculation methods are available.
 
-## WARNING:
-
-The Arduino Core version 2.4.1 suffers from a memory leak when using this library. Please use version 2.4.2 or above.
-
 ## Installation
 
 * For Arduino IDE: see the [Arduino Guide](https://www.arduino.cc/en/Guide/Libraries#toc4)
@@ -60,7 +56,7 @@ void ICACHE_RAM_ATTR handleError(uint8_t e) {
 
 void setup() {
   Serial.begin(74880);
-  sensor.setPin(D4);
+  sensor.setup(D4);
   sensor.onData(handleData);
   sensor.onError(handleError);
   ticker.attach(30, readDHT);
