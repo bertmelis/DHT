@@ -29,12 +29,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include <Ticker.h>
-#include <FunctionalInterrupt.h>
 
 namespace DHTInternals {
 
-typedef std::function<void(float, float)> OnData_CB;
-typedef std::function<void(uint8_t)> OnError_CB;
+typedef std::function<void(float humid, float temp)> OnData_CB;
+typedef std::function<void(uint8_t error)> OnError_CB;
 
 }  // end namespace DHTInternals
 
