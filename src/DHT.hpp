@@ -57,11 +57,11 @@ class DHT {
   Ticker _timer;
   volatile int8_t _counter;
   volatile uint32_t _previousMicros;
-  static void ICACHE_RAM_ATTR _handleRead(DHT* a);
-  static void ICACHE_RAM_ATTR _handleData(void* a);
-  void ICACHE_RAM_ATTR _stop(uint8_t status);
-  static void ICACHE_RAM_ATTR _timeout(DHT* a);
-  void ICACHE_RAM_ATTR _tryCallback();
+  static void IRAM_ATTR _handleRead(DHT* a);
+  static void IRAM_ATTR _handleData(void* a);
+  void IRAM_ATTR _stop(uint8_t status);
+  static void IRAM_ATTR _timeout(DHT* a);
+  void IRAM_ATTR _tryCallback();
   virtual float _getHumidity() = 0;
   virtual float _getTemperature() = 0;
 };
